@@ -26,7 +26,7 @@ func NewTokenizer(wordVocabFile, q2bVocabFile string) (*aietokenizer.Tokenizer, 
 	}
 	tk := tokenizer.NewTokenizer(m)
 	tk.WithPadding(&paddingParams)
-	tk.WithNormalizer(normalizer.NewBertNormalizer(false, false, true, false)) // Handle Chinese chars
+	tk.WithNormalizer(normalizer.NewBertNormalizer(false, true, true, false)) // Handle Chinese chars
 	tk.WithPreTokenizer(pretokenizer.NewBertPreTokenizer())
 
 	return &aietokenizer.Tokenizer{Tokenizer: tk}, nil

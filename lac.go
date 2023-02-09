@@ -3,6 +3,7 @@ package lac
 import (
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/go-aie/paddle"
 	aietokenizer "github.com/go-aie/tokenizer"
@@ -56,7 +57,7 @@ func NewLAC(cfg *Config) *LAC {
 	}
 }
 
-func (l *LAC) Seg(texts []string) ([][]string, error) {
+func (l *LAC) LAC(texts []string) ([]Segments, error) {
 	encodings, err := l.tk.EncodeBatchTexts(texts, false)
 	if err != nil {
 		return nil, err
@@ -76,8 +77,20 @@ func (l *LAC) Seg(texts []string) ([][]string, error) {
 			TagIDs: row[:lens[i]], // Remove the padding ids.
 		})
 	}
-
 	return l.postProcess(dataSet), nil
+}
+
+func (l *LAC) Seg(texts []string) ([][]string, error) {
+	result, err := l.LAC(texts)
+	if err != nil {
+		return nil, err
+	}
+
+	var words [][]string
+	for _, s := range result {
+		words = append(words, s.Words())
+	}
+	return words, nil
 }
 
 func (l *LAC) getInputs(encodings []tokenizer.Encoding) ([]paddle.Tensor, []int64) {
@@ -100,8 +113,8 @@ func (l *LAC) getInputs(encodings []tokenizer.Encoding) ([]paddle.Tensor, []int6
 	}, lens
 }
 
-func (l *LAC) postProcess(dataSet []Data) [][]string {
-	var result [][]string
+func (l *LAC) postProcess(dataSet []Data) []Segments {
+	var result []Segments
 	for _, d := range dataSet {
 		var tags []*Tag
 		for _, s := range l.tagVocab.IDsToTokens(d.TagIDs) {
@@ -112,26 +125,72 @@ func (l *LAC) postProcess(dataSet []Data) [][]string {
 		runes := []rune(d.Text)
 		l.custom.Parse(d.Text, tags)
 
-		var words []string
-		word := ""
+		var word string
+		var end int
+		var segments Segments
 		var prevTag *Tag
+
 		for i, tag := range tags {
 			if tag.BIO == "B" || (tag.BIO == "O" && prevTag.BIO != "O") {
 				if word != "" {
-					words = append(words, word)
+					segments = append(segments, Segment{
+						Word: word,
+						POS:  prevTag.POS,
+						Offset: Offset{
+							Start: end - utf8.RuneCountInString(word),
+							End:   end,
+						},
+					})
 					word = ""
 				}
 			}
 
 			word += string(runes[i])
+			end++
 			prevTag = tag
 		}
 
 		if word != "" {
-			words = append(words, word)
+			segments = append(segments, Segment{
+				Word: word,
+				POS:  prevTag.POS,
+				Offset: Offset{
+					Start: end - utf8.RuneCountInString(word),
+					End:   end,
+				},
+			})
 		}
 
-		result = append(result, words)
+		result = append(result, segments)
+	}
+	return result
+}
+
+type Offset struct {
+	Start int // The start offset.
+	End   int // The end offset.
+}
+
+type Segment struct {
+	Word string
+	POS  string
+	Offset
+}
+
+type Segments []Segment
+
+func (s Segments) Words() []string {
+	var result []string
+	for _, seg := range s {
+		result = append(result, seg.Word)
+	}
+	return result
+}
+
+func (s Segments) POSs() []string {
+	var result []string
+	for _, seg := range s {
+		result = append(result, seg.POS)
 	}
 	return result
 }

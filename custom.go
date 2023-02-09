@@ -49,6 +49,7 @@ func (c *Customization) LoadFromSlice(lines []string) {
 		}
 
 		var word string
+		var start int
 		var segments []Segment
 
 		for _, field := range fields {
@@ -57,17 +58,18 @@ func (c *Customization) LoadFromSlice(lines []string) {
 				w, pos = sub[0], sub[1]
 			}
 
-			start := utf8.RuneCountInString(word)
+			wLen := utf8.RuneCountInString(w)
 			segments = append(segments, Segment{
 				Word: w,
 				POS:  pos,
 				Offset: Offset{
 					Start: start,
-					End:   start + utf8.RuneCountInString(w),
+					End:   start + wLen,
 				},
 			})
 
 			word += w
+			start += wLen
 		}
 
 		c.items[word] = segments
@@ -142,15 +144,4 @@ func (t Trie) Search(text string) []Offset {
 	}
 
 	return offsets
-}
-
-type Offset struct {
-	Start int // The start offset.
-	End   int // The end offset.
-}
-
-type Segment struct {
-	Word string
-	POS  string
-	Offset
 }
