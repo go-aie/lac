@@ -8,16 +8,16 @@ import (
 
 	aietokenizer "github.com/go-aie/tokenizer"
 	"github.com/sugarme/tokenizer"
-	"github.com/sugarme/tokenizer/model/wordlevel"
 	"github.com/sugarme/tokenizer/normalizer"
 	"github.com/sugarme/tokenizer/pretokenizer"
 )
 
 func NewTokenizer(wordVocabFile, q2bVocabFile string) (*aietokenizer.Tokenizer, error) {
-	m, err := NewWordLevel(wordVocabFile, q2bVocabFile)
+	vocab, err := NewVocab(wordVocabFile, q2bVocabFile)
 	if err != nil {
 		return nil, err
 	}
+	m := aietokenizer.NewRuneLevel(vocab)
 
 	paddingStrategy := tokenizer.NewPaddingStrategy()
 	paddingParams := tokenizer.PaddingParams{
@@ -32,13 +32,13 @@ func NewTokenizer(wordVocabFile, q2bVocabFile string) (*aietokenizer.Tokenizer, 
 	return &aietokenizer.Tokenizer{Tokenizer: tk}, nil
 }
 
-type WordLevel struct {
-	*wordlevel.WordLevel
-	q2bVocab map[string]string
+type Vocab struct {
+	wordVocab *aietokenizer.Vocab[int]
+	q2bVocab  map[string]string
 }
 
-func NewWordLevel(wordVocabFile, q2bVocabFile string) (*WordLevel, error) {
-	wordVocab, err := aietokenizer.NewVocabFromFile[int](wordVocabFile, "\t")
+func NewVocab(wordVocabFile, q2bVocabFile string) (*Vocab, error) {
+	wordVocab, err := aietokenizer.NewVocabFromFile[int](wordVocabFile, "\t", "OOV")
 	if err != nil {
 		return nil, err
 	}
@@ -48,19 +48,21 @@ func NewWordLevel(wordVocabFile, q2bVocabFile string) (*WordLevel, error) {
 		return nil, err
 	}
 
-	return &WordLevel{
-		WordLevel: aietokenizer.NewWordLevel(wordVocab.Vocab, "OOV"),
+	return &Vocab{
+		wordVocab: wordVocab,
 		q2bVocab:  q2bVocab,
 	}, nil
 }
 
-// Tokenize transforms given input into token.
-func (w *WordLevel) Tokenize(token string) ([]tokenizer.Token, error) {
+func (v *Vocab) Vocab() map[string]int { return v.wordVocab.Vocab() }
+func (v *Vocab) UnkToken() string      { return v.wordVocab.UnkToken() }
+
+func (v *Vocab) TokenToID(token string) (int, error) {
 	// Convert traditional tokens to simplified tokens.
-	if t, ok := w.q2bVocab[token]; ok {
+	if t, ok := v.q2bVocab[token]; ok {
 		token = t
 	}
-	return w.WordLevel.Tokenize(token)
+	return v.wordVocab.TokenToID(token)
 }
 
 func LoadQ2bVocab(filename string) (map[string]string, error) {

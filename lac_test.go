@@ -17,6 +17,7 @@ func TestLAC_LAC(t *testing.T) {
 		{
 			inText: []string{
 				"近日国家卫健委发布第九版新型冠状病毒肺炎诊疗方案",
+				"LAC是个优秀的分词工具",
 				"我的想法",
 			},
 			wantSegments: []lac.Segments{
@@ -29,6 +30,15 @@ func TestLAC_LAC(t *testing.T) {
 					{Word: "冠状病毒肺炎", POS: "nz", Offset: lac.Offset{Start: 14, End: 20}},
 					{Word: "诊疗", POS: "vn", Offset: lac.Offset{Start: 20, End: 22}},
 					{Word: "方案", POS: "n", Offset: lac.Offset{Start: 22, End: 24}},
+				},
+				{
+					{Word: "LAC", POS: "nz", Offset: lac.Offset{End: 3}},
+					{Word: "是", POS: "v", Offset: lac.Offset{Start: 3, End: 4}},
+					{Word: "个", POS: "q", Offset: lac.Offset{Start: 4, End: 5}},
+					{Word: "优秀", POS: "a", Offset: lac.Offset{Start: 5, End: 7}},
+					{Word: "的", POS: "u", Offset: lac.Offset{Start: 7, End: 8}},
+					{Word: "分词", POS: "n", Offset: lac.Offset{Start: 8, End: 10}},
+					{Word: "工具", POS: "n", Offset: lac.Offset{Start: 10, End: 12}},
 				},
 				{
 					{Word: "我", POS: "r", Offset: lac.Offset{End: 1}},
@@ -60,6 +70,7 @@ func TestLAC_Seg(t *testing.T) {
 		{
 			inText: []string{
 				"近日国家卫健委发布第九版新型冠状病毒肺炎诊疗方案",
+				"LAC是个优秀的分词工具",
 				"我的想法",
 			},
 			wantWords: [][]string{
@@ -72,6 +83,15 @@ func TestLAC_Seg(t *testing.T) {
 					"冠状病毒肺炎",
 					"诊疗",
 					"方案",
+				},
+				{
+					"LAC",
+					"是",
+					"个",
+					"优秀",
+					"的",
+					"分词",
+					"工具",
 				},
 				{
 					"我",

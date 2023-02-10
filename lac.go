@@ -37,7 +37,7 @@ func NewLAC(cfg *Config) *LAC {
 		panic(err)
 	}
 
-	tagVocab, err := aietokenizer.NewVocabFromFile[int64](cfg.TagVocabFile, "\t")
+	tagVocab, err := aietokenizer.NewVocabFromFile[int64](cfg.TagVocabFile, "\t", "O")
 	if err != nil {
 		panic(err)
 	}
@@ -117,7 +117,11 @@ func (l *LAC) postProcess(dataSet []Data) []Segments {
 	var result []Segments
 	for _, d := range dataSet {
 		var tags []*Tag
-		for _, s := range l.tagVocab.IDsToTokens(d.TagIDs) {
+		tokens, err := l.tagVocab.IDsToTokens(d.TagIDs)
+		if err != nil {
+			panic(err)
+		}
+		for _, s := range tokens {
 			tags = append(tags, NewTag(s))
 		}
 		fmt.Printf("tags: %v\n", tags)
