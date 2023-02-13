@@ -67,8 +67,7 @@ func (l *LAC) LAC(texts []string) ([]Segments, error) {
 	outputs := l.engine.Infer(inputs)
 	result := outputs[0]
 
-	m := paddle.NewMatrix(paddle.NewTypedTensor[int64](result))
-	rows := paddle.Rows[int64](m)
+	rows := paddle.NewMatrix[int64](result).Rows()
 
 	var dataSet []Data
 	for i, row := range rows {
