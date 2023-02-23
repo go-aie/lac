@@ -7,18 +7,13 @@ Go Inference API for [LAC][1].
 
 ## Installation
 
-1. Install [Paddle Inference Go API][3]
-2. Generate [the inference model](cli/README.md#save-inference-model)
-
-    ```bash
-    $ python3 cli/cli.py download
-    ```
-   
-3. Install `lac`
+1. Install `lac`
 
     ```bash
     $ go get -u github.com/go-aie/lac
     ```
+
+2. Install [Paddle Inference Go API][3]
 
 
 ## Documentation
@@ -27,6 +22,12 @@ Check out the [documentation][2].
 
 
 ## Testing
+
+Generate [the inference model](cli/README.md#save-inference-model):
+
+```bash
+$ python3 cli/cli.py download
+```
 
 Run tests:
 
@@ -49,4 +50,4 @@ ok  	github.com/go-aie/lac	1.188s
 
 [1]: https://github.com/baidu/lac
 [2]: https://pkg.go.dev/github.com/go-aie/lac
-[3]: https://www.paddlepaddle.org.cn/inference/master/guides/install/go_install.html
+[3]: https://github.com/go-aie/paddle/tree/main/cmd/paddle
